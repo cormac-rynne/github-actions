@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## v0.2.0 (2024-08-18)
+
+### Feature
+
+* feat(nothing): nothing
+BREAKING CHANGE ([`f4d7640`](https://github.com/cormac-rynne/github-actions/commit/f4d764037056d90a7ec90b654fd695d57069a9f0))
+
+### Unknown
+
+* Merge branch &#39;main&#39; of https://github.com/cormac-rynne/github-actions ([`b23c83a`](https://github.com/cormac-rynne/github-actions/commit/b23c83a5b91394a3d43d4dd22dcdd31c97ce652e))
+
 ## v0.1.0 (2024-08-18)
 
 ### Feature
@@ -21,6 +32,9 @@
 * fix: added check to black formatting ([`47531bd`](https://github.com/cormac-rynne/github-actions/commit/47531bd20878e33b22e1c3aebb73c0505eeb1aac))
 
 ### Unknown
+
+* fit(ci): nothing
+BREAKING CHANGE ([`c426f8a`](https://github.com/cormac-rynne/github-actions/commit/c426f8ab2dc2e4a971f6f281d8910bd32322d791))
 
 * version bump ([`2b3dff4`](https://github.com/cormac-rynne/github-actions/commit/2b3dff451bd035a4eb7d2633e516193e6e2140a3))
 
