@@ -6,7 +6,7 @@ inputs:
     description: 'Python version to use'
     required: false
     default: '3.10'
-  dependencies-file:
+  dependency-files:
     description: 'File specifying dependencies (requirements.txt or poetry.lock)'
     required: false
     default: 'requirements.txt requirements-dev.txt'
