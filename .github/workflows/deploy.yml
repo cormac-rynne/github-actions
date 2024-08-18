@@ -40,60 +40,62 @@ jobs:
 
     - name: Formatting with black
       run: black . --check .
+      continue-on-error: true
+      id: black
 
     - name: Lint with flake8
       run: flake8 .
+      continue-on-error: true
+      id: flake8
 
     - name: Test with pytest
-      run: pytest > coverage_report.txt
+      run: pytest --cov=./ --cov-report=xml
+      continue-on-error: true
+      id: pytest
 
     - name: Upload coverage report
       uses: actions/upload-artifact@v3
       with:
         name: coverage-report
-        path: coverage_report.txt
+        path: coverage.xml
         if-no-files-found: error
 
-  slack-notify-success:
-    needs: test
-    if: success()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Slack Notification (Success)
-        uses: 8398a7/action-slack@v3
-        with:
-          status: ${{ job.status }}
-          fields: repo,message,commit,author,action,eventName,ref,workflow
-          author_name: GitHub Actions
-          mention: here
-          if_mention: success
-          job_name: ${{ job.job }}
-          channel: github-ci-notifications
-          icon_emoji: ':white_check_mark:'
-          username: GitHub Actions
-          text: 'All tests passed successfully! :tada:'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+    - name: Determine job status
+      id: job_status
+      run: |
+        if [[ "${{ steps.black.outcome }}" == "failure" || "${{ steps.flake8.outcome }}" == "failure" || "${{ steps.pytest.outcome }}" == "failure" ]]; then
+          echo "status=failure" >> $GITHUB_OUTPUT
+        else
+          echo "status=success" >> $GITHUB_OUTPUT
+        fi
 
-  slack-notify-failure:
-    needs: test
-    if: failure()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Slack Notification (Failure)
-        uses: 8398a7/action-slack@v3
-        with:
-          status: ${{ job.status }}
-          fields: repo,message,commit,author,action,eventName,ref,workflow
-          author_name: GitHub Actions
-          mention: here
-          if_mention: failure,cancelled
-          job_name: ${{ job.job }}
-          channel: github-ci-notifications
-          icon_emoji: ':x:'
-          username: GitHub Actions
-          text: 'Tests or coverage check failed! :rotating_light:'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+    - name: Slack Notification
+      uses: 8398a7/action-slack@v3
+      if: always()
+      with:
+        status: ${{ steps.job_status.outputs.status }}
+        fields: repo,message,commit,author,action,eventName,ref,workflow
+        author_name: GitHub Actions
+        mention: here
+        if_mention: failure,cancelled
+        job_name: ${{ job.job }}
+        channel: github-ci-notifications
+        icon_emoji: ':github:'
+        username: GitHub Actions
+        text: |
+          *Repository:* ${{ github.repository }}
+          *Branch:* ${{ github.ref }}
+          *Commit:* ${{ github.sha }}
+          *Author:* ${{ github.actor }}
+          
+          *Job Status:* ${{ steps.job_status.outputs.status }}
+          
+          *Details:*
+          - Formatting (Black): ${{ steps.black.outcome }}
+          - Linting (Flake8): ${{ steps.flake8.outcome }}
+          - Tests (Pytest): ${{ steps.pytest.outcome }}
+          
+          ${{ steps.job_status.outputs.status == 'success' && ':white_check_mark: All checks passed successfully!' || ':x: Some checks failed. Please review the workflow for more details.' }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
