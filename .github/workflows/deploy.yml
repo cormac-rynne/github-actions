@@ -77,34 +77,34 @@ jobs:
     permissions:
         id-token: write
         contents: write
-    env:
-      TWINE_USERNAME: ${{ secrets.PYPI_TEST_USERNAME }}
-      TWINE_PASSWORD: ${{ secrets.PYPI_TEST_PASSWORD }}
     steps:
     - uses: actions/checkout@v3
       with:
         fetch-depth: 0
+    - uses: ./.github/actions/setup-python
     - name: Python Semantic Release
       uses: python-semantic-release/python-semantic-release@v9.8.6
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-    - uses: ./.github/actions/setup-python
-    - name: Publish
-      run: twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 
-  # build-publish:
-  #   needs: [bump-version]
-  #   name: Build and Publish
-  #   runs-on: ubuntu-latest
-  #   env:
-  #     TWINE_USERNAME: ${{ secrets.PYPI_TEST_USERNAME }}
-  #     TWINE_PASSWORD: ${{ secrets.PYPI_TEST_PASSWORD }}
-  #   steps:
-  #     - uses: actions/checkout@v3
-  #       with:
-  #         fetch-depth: 0
-  #     - uses: ./.github/actions/setup-python
-  #     - name: build
-  #       run: python -m build
-  #     - name: Publish
-  #       run: twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+  build-publish:
+    needs: [bump-version]
+    name: Build and Publish
+    runs-on: ubuntu-latest
+    env:
+      TWINE_USERNAME: ${{ secrets.PYPI_TEST_USERNAME }}
+      TWINE_PASSWORD: ${{ secrets.PYPI_TEST_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-python
+      - name: Fetch latest changes
+        run: |
+          git fetch origin
+          git checkout main
+          git pull origin main
+      - name: build
+        run: python -m build
+      - name: Publish
+        run: twine upload --repository-url https://test.pypi.org/legacy/ dist/*
