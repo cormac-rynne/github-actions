@@ -48,3 +48,5 @@ runs:
             echo "Warning: Dependency file not found: $file"
           fi
         done
+
+        pip install -e .[dev]

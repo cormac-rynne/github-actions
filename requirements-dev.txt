@@ -5,3 +5,5 @@ black
 python-semantic-release
 isort
 flit
+build
+twine

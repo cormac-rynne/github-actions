@@ -3,3 +3,6 @@ notes
 .env
 .coverage
 .pyirc
+dist/
+*.egg-info/
+.pytest_cache/
