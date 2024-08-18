@@ -49,16 +49,9 @@ jobs:
       id: flake8
 
     - name: Test with pytest
-      run: pytest --cov=./ --cov-report=xml
+      run: pytest 
       continue-on-error: true
       id: pytest
-
-    - name: Upload coverage report
-      uses: actions/upload-artifact@v3
-      with:
-        name: coverage-report
-        path: coverage.xml
-        if-no-files-found: error
 
     - name: Determine job status
       id: job_status
@@ -76,7 +69,7 @@ jobs:
         status: ${{ steps.job_status.outputs.status }}
         fields: repo,message,commit,author,action,eventName,ref,workflow
         author_name: GitHub Actions
-        mention: here
+        mention: ${{ steps.job_status.outputs.status == 'failure' && 'here' || '' }}
         if_mention: failure,cancelled
         job_name: ${{ job.job }}
         channel: github-ci-notifications
@@ -96,6 +89,8 @@ jobs:
           - Tests (Pytest): ${{ steps.pytest.outcome }}
           
           ${{ steps.job_status.outputs.status == 'success' && ':white_check_mark: All checks passed successfully!' || ':x: Some checks failed. Please review the workflow for more details.' }}
+          
+          <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Full Workflow Run>
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
