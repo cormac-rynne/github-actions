@@ -85,3 +85,17 @@ jobs:
       uses: python-semantic-release/python-semantic-release@v9.8.6
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  build-publish:
+    name: Testing (Pytest)
+    runs-on: ubuntu-latest
+    env:
+      TWINE_USERNAME: ${{ secrets.PYPI_TEST_USERNAME }}
+      TWINE_PASSWORD: ${{ secrets.PYPI_TEST_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/setup-python
+      - name: build
+        run: python -m build
+      - name: Publish
+        run: twine upload dist/*
