@@ -1,8 +1,22 @@
 # CHANGELOG
 
+## v1.0.3 (2024-08-18)
+
+### Unknown
+
+* Fix(publish): add build and publish ([`6976a90`](https://github.com/cormac-rynne/github-actions/commit/6976a90521aed6b748e527e2a26bb67d4d796c51))
+
+* Fix(publish): add build and publish ([`b7b104e`](https://github.com/cormac-rynne/github-actions/commit/b7b104edc5427a873fbb4159a07445511147a7f9))
+
+* Fix(publish): add build and publish ([`c2f5f07`](https://github.com/cormac-rynne/github-actions/commit/c2f5f078c7e17bd7206a866119e9e94416273f62))
+
 ## v1.0.2 (2024-08-18)
 
 ### Fix
+
+* fix(nothing): nothing ([`a1abfdd`](https://github.com/cormac-rynne/github-actions/commit/a1abfdd685414cf63df9d4614e527d3e1406bfae))
+
+* fix(nothing): nothing ([`0e23e10`](https://github.com/cormac-rynne/github-actions/commit/0e23e101c3168476d12186b2ceae43b4615a461e))
 
 * fix(nothing): nothing ([`2dfdb4e`](https://github.com/cormac-rynne/github-actions/commit/2dfdb4e51b86a786e4661b748e454f1c434feb21))
 
