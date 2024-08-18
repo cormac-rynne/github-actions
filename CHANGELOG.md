@@ -1,10 +1,30 @@
 # CHANGELOG
 
+## v1.1.1 (2024-08-18)
+
+### Fix
+
+* fix: publish ([`0b26772`](https://github.com/cormac-rynne/github-actions/commit/0b2677265791bb818054309e24574b291daaf05c))
+
+* fix: publish ([`1d794ff`](https://github.com/cormac-rynne/github-actions/commit/1d794ff7304224cd2ba2c733e467b301fed0b926))
+
+* fix: publish ([`375b81d`](https://github.com/cormac-rynne/github-actions/commit/375b81dd585aeb138c61ba407382d8543cd5806b))
+
+* fix: publish ([`668c906`](https://github.com/cormac-rynne/github-actions/commit/668c90616ec94e1e7471dc6504e1bff85a9e2d5d))
+
+### Unknown
+
+* Merge branch &#39;main&#39; of https://github.com/cormac-rynne/github-actions ([`719e1dd`](https://github.com/cormac-rynne/github-actions/commit/719e1dd325b14ef65e8dddad5da1410eaaf6f93e))
+
 ## v1.1.0 (2024-08-18)
 
 ### Feature
 
 * feat: publish ([`f99d127`](https://github.com/cormac-rynne/github-actions/commit/f99d1277a6c882821140fc286670123e545fa650))
+
+### Fix
+
+* fix: publish ([`1b3bcf0`](https://github.com/cormac-rynne/github-actions/commit/1b3bcf0d0480856c40220a83864a91127f13f805))
 
 ## v1.0.3 (2024-08-18)
 
