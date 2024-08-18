@@ -21,4 +21,6 @@ def divide(a, b):
 
 
 def test():
-    print("This line is intentially too long, designed to trigger the flake8 line length. The quick brown fox jumped over the lazy dog")
+    print(
+        "This line is intentially too long, designed to trigger the flake8 line length. The quick brown fox jumped over the lazy dog"
+    )

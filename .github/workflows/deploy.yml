@@ -60,15 +60,13 @@ jobs:
           username: GitHub Actions
           text: |
             Workflow Summary:
-            Formatting: ${{ needs.formatting.result }}
-            Linting: ${{ needs.linting.result }}
-            Testing: ${{ needs.testing.result }}
+            *Formatting*: ${{ needs.formatting.result == 'success' && ':white_check_mark:' || ':x:' }} ${{ needs.formatting.result }}
+            *Linting*: ${{ needs.linting.result == 'success' && ':white_check_mark:' || ':x:' }} ${{ needs.linting.result }}
+            *Testing*: ${{ needs.testing.result == 'success' && ':white_check_mark:' || ':x:' }} ${{ needs.testing.result }}
 
-            Git Summary:
-            Commit: ${{ github.sha }}
-            Branch: ${{ github.ref }}
-            Author: ${{ github.actor }}
-            Event: ${{ github.event_name }}
+            ${{ job.status == 'success' && ':white_check_mark: All checks passed successfully!' || ':x: Some checks failed. Please review the workflow for more details.' }}
+          
+            <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Full Workflow Run>
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
