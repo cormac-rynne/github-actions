@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v1.0.1 (2024-08-18)
+
+### Fix
+
+* fix(nothing): nothing ([`d0eacdd`](https://github.com/cormac-rynne/github-actions/commit/d0eacdda06d161c4ec47f2f736faa4a79d5d0924))
+
 ## v1.0.0 (2024-08-18)
 
 ### Breaking
