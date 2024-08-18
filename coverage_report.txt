@@ -1,0 +1,24 @@
+============================= test session starts =============================
+platform win32 -- Python 3.9.13, pytest-8.3.2, pluggy-1.5.0 -- G:\My Drive\Python\github-actions\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: G:\My Drive\Python\github-actions
+configfile: pytest.ini
+testpaths: tests, integration
+plugins: cov-5.0.0
+collecting ... collected 4 items
+
+tests/test_calculator.py::test_add PASSED                                 [1/4]
+tests/test_calculator.py::test_subtract PASSED                            [2/4]
+tests/test_calculator.py::test_multiply PASSED                            [3/4]
+tests/test_calculator.py::test_divide PASSED                              [4/4]
+
+---------- coverage: platform win32, python 3.9.13-final-0 -----------
+Name                       Stmts   Miss  Cover   Missing
+--------------------------------------------------------
+calculator\calculator.py      13      1    92%   24
+--------------------------------------------------------
+TOTAL                         13      1    92%
+
+Required test coverage of 80.0% reached. Total coverage: 92.31%
+
+============================== 4 passed in 0.60s ==============================

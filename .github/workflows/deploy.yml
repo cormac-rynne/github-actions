@@ -1,45 +1,58 @@
-name: Deployment
+name: Python Package CI/CD
+
 on:
   push:
-    branches:
-      - main
-      - dev
-env:
-  MONGODB_DB_NAME: gha-demo
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  release:
+    types: [created]
+
 jobs:
   test:
-    environment: testing
-    runs-on: ubuntu-latest
-    env:
-      MONGODB_CLUSTER_ADDRESS: test.iwbwd.mongodb.net/
-      MONGODB_USERNAME: ${{ secrets.MONGODB_USERNAME }}  
-      MONGODB_PASSWORD: ${{ secrets.MONGODB_PASSWORD }}  
-      PORT: 8080
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python-version: ['3.10', '3.11']
+
     steps:
-      - name: Get Code
-        uses: actions/checkout@v3
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.npm
-          key: npm-deps-${{ hashFiles('**/package-lock.json') }}
-      - name: Install dependencies
-        run: npm ci
-      - name: Run server
-        run: npm start & npx wait-on http://127.0.0.1:$PORT # requires MongoDB Atlas to accept requests from anywhere!
-      - name: Run tests
-        run: npm test
-      - name: Output information
-        run: |
-          echo "MONGODB_USERNAME: $MONGODB_USERNAME"
-  deploy:
-    needs: test
-    runs-on: ubuntu-latest
-    steps:
-      - name: Output information
-        env:
-          PORT: 3000
-        run: |        
-          echo "MONGODB_DB_NAME: $MONGODB_DB_NAME"
-          echo "MONGODB_USERNAME: $MONGODB_USERNAME"
-          echo "${{ env.PORT }}"
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Cache pip
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+
+    - name: Import sorting with isort
+      run: isort .
+
+    - name: Formatting with black
+      run: black .
+
+    - name: Lint with flake8
+      run: flake8 .
+
+    - name: Test with pytest
+      run: pytest > coverage_report.txt
+
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: coverage_report.txt
+        if-no-files-found: error
