@@ -63,10 +63,10 @@ jobs:
       uses: 8398a7/action-slack@v3
       if: always()
       with:
-        status: ${{ steps.job_status.outputs.status }}
+        status: ${{ job.status }}
         fields: repo,message,commit,author,action,eventName,ref,workflow
         author_name: GitHub Actions
-        mention: ${{ steps.job_status.outputs.status == 'failure' && 'here' || '' }}
+        mention: ${{ job.status == 'failure' && 'here' || '' }}
         if_mention: failure,cancelled
         job_name: ${{ job.job }}
         channel: github-ci-notifications
@@ -78,14 +78,14 @@ jobs:
           *Commit:* ${{ github.sha }}
           *Author:* ${{ github.actor }}
           
-          *Job Status:* ${{ steps.job_status.outputs.status }}
+          *Job Status:* ${{ job.status }}
           
           *Details:*
           - Formatting (Black): ${{ steps.black.outcome }}
           - Linting (Flake8): ${{ steps.flake8.outcome }}
           - Tests (Pytest): ${{ steps.pytest.outcome }}
           
-          ${{ steps.job_status.outputs.status == 'success' && ':white_check_mark: All checks passed successfully!' || ':x: Some checks failed. Please review the workflow for more details.' }}
+          ${{ job.status == 'success' && ':white_check_mark: All checks passed successfully!' || ':x: Some checks failed. Please review the workflow for more details.' }}
           
           <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Full Workflow Run>
           
