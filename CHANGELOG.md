@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v1.1.0 (2024-08-18)
+
+### Feature
+
+* feat: publish ([`f99d127`](https://github.com/cormac-rynne/github-actions/commit/f99d1277a6c882821140fc286670123e545fa650))
+
 ## v1.0.3 (2024-08-18)
 
 ### Unknown
