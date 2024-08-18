@@ -1,8 +1,22 @@
 # CHANGELOG
 
+## v1.0.2 (2024-08-18)
+
+### Fix
+
+* fix(nothing): nothing ([`2dfdb4e`](https://github.com/cormac-rynne/github-actions/commit/2dfdb4e51b86a786e4661b748e454f1c434feb21))
+
+* fix(nothing): nothing ([`6ab483e`](https://github.com/cormac-rynne/github-actions/commit/6ab483eb8a3a5d57d6258684090bde79bdd973a9))
+
+### Unknown
+
+* Merge branch &#39;main&#39; of https://github.com/cormac-rynne/github-actions ([`01dd123`](https://github.com/cormac-rynne/github-actions/commit/01dd12317fb1eab02157b0eac8ab1be2f938422f))
+
 ## v1.0.1 (2024-08-18)
 
 ### Fix
+
+* fix(nothing): nothing ([`9bbdcf2`](https://github.com/cormac-rynne/github-actions/commit/9bbdcf2379d919d1d59cfd422768d0529409e3d5))
 
 * fix(nothing): nothing ([`d0eacdd`](https://github.com/cormac-rynne/github-actions/commit/d0eacdda06d161c4ec47f2f736faa4a79d5d0924))
 
