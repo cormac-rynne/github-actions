@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v1.0.0 (2024-08-18)
+
+### Breaking
+
+* fix(nothing): nothing
+
+BREAKING CHANGE: Nothing now returns 1 ([`271dc3f`](https://github.com/cormac-rynne/github-actions/commit/271dc3f28f94d323a51741673ad06310f3cb7392))
+
 ## v0.2.0 (2024-08-18)
 
 ### Feature
