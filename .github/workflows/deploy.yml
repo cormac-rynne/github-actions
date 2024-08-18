@@ -54,16 +54,46 @@ jobs:
         path: coverage_report.txt
         if-no-files-found: error
 
+  slack-notify-success:
+    needs: test
+    if: success()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Slack Notification (Success)
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+          author_name: GitHub Actions
+          mention: here
+          if_mention: success
+          job_name: ${{ job.job }}
+          channel: github-ci-notifications
+          icon_emoji: ':white_check_mark:'
+          username: GitHub Actions
+          text: 'All tests passed successfully! :tada:'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
   slack-notify-failure:
     needs: test
     if: failure()
     runs-on: ubuntu-latest
     steps:
-      - name: Slack Notification
+      - name: Slack Notification (Failure)
         uses: 8398a7/action-slack@v3
         with:
           status: ${{ job.status }}
           fields: repo,message,commit,author,action,eventName,ref,workflow
-          text: 'CI/CD pipeline failed! :x:'
+          author_name: GitHub Actions
+          mention: here
+          if_mention: failure,cancelled
+          job_name: ${{ job.job }}
+          channel: github-ci-notifications
+          icon_emoji: ':x:'
+          username: GitHub Actions
+          text: 'Tests or coverage check failed! :rotating_light:'
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
