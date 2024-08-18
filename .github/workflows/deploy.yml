@@ -2,93 +2,138 @@ name: Python Package CI/CD
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   release:
     types: [created]
 
 jobs:
-  test:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest]
-        python-version: ['3.11']
-
+  setup:
+    name: Setup Python and Dependencies
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Cache Python packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt', '**/requirements-dev.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt -r requirements-dev.txt
+      - name: Cache virtual env
+        uses: actions/cache@v3
+        with:
+          path: ~/.venv
+          key: ${{ runner.os }}-venv-${{ hashFiles('**/requirements.txt', '**/requirements-dev.txt') }}
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
+  formatting:
+    name: Formatting (Black)
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Restore virtual env
+        uses: actions/cache@v3
+        with:
+          path: ~/.venv
+          key: ${{ runner.os }}-venv-${{ hashFiles('**/requirements.txt', '**/requirements-dev.txt') }}
+      - name: Run Black
+        run: |
+          source ~/.venv/bin/activate
+          black . --check .
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install -r requirements-dev.txt
+  linting:
+    name: Linting (Flake8)
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Restore virtual env
+        uses: actions/cache@v3
+        with:
+          path: ~/.venv
+          key: ${{ runner.os }}-venv-${{ hashFiles('**/requirements.txt', '**/requirements-dev.txt') }}
+      - name: Run Flake8
+        run: |
+          source ~/.venv/bin/activate
+          flake8 .
 
-    - name: Cache pip
-      uses: actions/cache@v3
-      with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-pip-
+  testing:
+    name: Testing (Pytest)
+    needs: setup
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Restore virtual env
+        uses: actions/cache@v3
+        with:
+          path: ~/.venv
+          key: ${{ runner.os }}-venv-${{ hashFiles('**/requirements.txt', '**/requirements-dev.txt') }}
+      - name: Run Pytest
+        run: |
+          source ~/.venv/bin/activate
+          pytest
 
-    - name: Formatting with black
-      run: black . --check .
-      id: black
-
-    - name: Lint with flake8
-      run: flake8 .
-      id: flake8
-
-    - name: Test with pytest
-      run: pytest 
-      id: pytest
-
-    - name: Determine job status
-      id: job_status
-      run: |
-        if [[ "${{ steps.black.outcome }}" == "failure" || "${{ steps.flake8.outcome }}" == "failure" || "${{ steps.pytest.outcome }}" == "failure" ]]; then
-          echo "status=failure" >> $GITHUB_OUTPUT
-        else
-          echo "status=success" >> $GITHUB_OUTPUT
-        fi
-
-    - name: Slack Notification
-      uses: 8398a7/action-slack@v3
-      if: always()
-      with:
-        status: ${{ job.status }}
-        fields: repo,message,commit,author,action,eventName,ref,workflow
-        author_name: GitHub Actions
-        mention: ${{ job.status == 'failure' && 'here' || '' }}
-        if_mention: failure,cancelled
-        job_name: ${{ job.job }}
-        channel: github-ci-notifications
-        icon_emoji: ':github:'
-        username: GitHub Actions
-        text: |
-          *Repository:* ${{ github.repository }}
-          *Branch:* ${{ github.ref }}
-          *Commit:* ${{ github.sha }}
-          *Author:* ${{ github.actor }}
-          
-          *Job Status:* ${{ job.status }}
-          
-          *Details:*
-          - Formatting (Black): ${{ steps.black.outcome }}
-          - Linting (Flake8): ${{ steps.flake8.outcome }}
-          - Tests (Pytest): ${{ steps.pytest.outcome }}
-          
-          ${{ job.status == 'success' && ':white_check_mark: All checks passed successfully!' || ':x: Some checks failed. Please review the workflow for more details.' }}
-          
-          <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Full Workflow Run>
-          
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+  slack-notification:
+    name: Slack Notification
+    needs: [setup, formatting, linting, testing]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Send Slack notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: custom
+          fields: workflow,job,commit,repo,ref,author,took
+          custom_payload: |
+            {
+              "attachments": [
+                {
+                  "color": "${{ job.status == 'success' && 'good' || job.status == 'failure' && 'danger' || 'warning' }}",
+                  "text": "CI/CD Pipeline Results:",
+                  "fields": [
+                    {
+                      "title": "Setup",
+                      "value": "${{ needs.setup.result == 'success' && ':white_check_mark:' || ':x:' }} ${{ needs.setup.result }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Formatting (Black)",
+                      "value": "${{ needs.formatting.result == 'success' && ':white_check_mark:' || ':x:' }} ${{ needs.formatting.result }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Linting (Flake8)",
+                      "value": "${{ needs.linting.result == 'success' && ':white_check_mark:' || ':x:' }} ${{ needs.linting.result }}",
+                      "short": true
+                    },
+                    {
+                      "title": "Testing (Pytest)",
+                      "value": "${{ needs.testing.result == 'success' && ':white_check_mark:' || ':x:' }} ${{ needs.testing.result }}",
+                      "short": true
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
