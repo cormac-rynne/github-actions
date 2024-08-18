@@ -38,11 +38,11 @@ jobs:
         pip install -r requirements.txt
         pip install -r requirements-dev.txt
 
-    - name: Import sorting with isort
-      run: isort .
+    # - name: Import sorting with isort
+    #   run: isort .
 
     - name: Formatting with black
-      run: black .
+      run: black . --check .
 
     - name: Lint with flake8
       run: flake8 .
