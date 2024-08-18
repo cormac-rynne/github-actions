@@ -27,4 +27,5 @@ def test():
 
 
 def nothing():
+    "doc string"
     return 1
