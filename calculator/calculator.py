@@ -27,7 +27,5 @@ def test():
 
 
 def nothing():
-    """Doc string
-
-    """
+    """Doc string"""
     return 1
