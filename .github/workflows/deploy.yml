@@ -9,136 +9,66 @@ on:
     types: [created]
 
 jobs:
-  setup:
-    name: Setup Python and Dependencies
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11.4'
-      
-      - name: Get pip cache dir
-        id: pip-cache
-        run: echo "dir=$(pip cache dir)" >> $GITHUB_OUTPUT
-      
-      - name: Cache dependencies
-        uses: actions/cache@v3
-        with:
-          path: ${{ steps.pip-cache.outputs.dir }}
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt', '**/requirements-dev.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-      
-      - name: Install pip-tools
-        run: python -m pip install pip-tools
-      
-      - name: Compile requirements
-        run: pip-compile requirements.txt requirements-dev.txt --output-file requirements-compiled.txt
-      
-      - name: Install dependencies
-        run: pip-sync requirements-compiled.txt
-
   formatting:
     name: Formatting (Black)
-    needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      - name: Restore virtual env
-        uses: actions/cache@v3
-        with:
-          path: ~/.venv
-          key: ${{ runner.os }}-venv-${{ hashFiles('**/requirements.txt', '**/requirements-dev.txt') }}
+      - uses: ./.github/actions/setup-python
       - name: Run Black
         run: |
-          source ~/.venv/bin/activate
-          black . --check .
+          black . --check --diff
 
   linting:
     name: Linting (Flake8)
-    needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      - name: Restore virtual env
-        uses: actions/cache@v3
-        with:
-          path: ~/.venv
-          key: ${{ runner.os }}-venv-${{ hashFiles('**/requirements.txt', '**/requirements-dev.txt') }}
+      - uses: ./.github/actions/setup-python
       - name: Run Flake8
         run: |
-          source ~/.venv/bin/activate
           flake8 .
 
   testing:
     name: Testing (Pytest)
-    needs: setup
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      - uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      - name: Restore virtual env
-        uses: actions/cache@v3
-        with:
-          path: ~/.venv
-          key: ${{ runner.os }}-venv-${{ hashFiles('**/requirements.txt', '**/requirements-dev.txt') }}
+      - uses: ./.github/actions/setup-python
       - name: Run Pytest
         run: |
-          source ~/.venv/bin/activate
           pytest
 
   slack-notification:
     name: Slack Notification
-    needs: [setup, formatting, linting, testing]
+    needs: [formatting, linting, testing]
     runs-on: ubuntu-latest
     if: always()
     steps:
-      - name: Send Slack notification
+      - uses: actions/checkout@v3
+      - name: Slack Notification
         uses: 8398a7/action-slack@v3
         with:
-          status: custom
-          fields: workflow,job,commit,repo,ref,author,took
-          custom_payload: |
-            {
-              "attachments": [
-                {
-                  "color": "${{ job.status == 'success' && 'good' || job.status == 'failure' && 'danger' || 'warning' }}",
-                  "text": "CI/CD Pipeline Results:",
-                  "fields": [
-                    {
-                      "title": "Setup",
-                      "value": "${{ needs.setup.result == 'success' && ':white_check_mark:' || ':x:' }} ${{ needs.setup.result }}",
-                      "short": true
-                    },
-                    {
-                      "title": "Formatting (Black)",
-                      "value": "${{ needs.formatting.result == 'success' && ':white_check_mark:' || ':x:' }} ${{ needs.formatting.result }}",
-                      "short": true
-                    },
-                    {
-                      "title": "Linting (Flake8)",
-                      "value": "${{ needs.linting.result == 'success' && ':white_check_mark:' || ':x:' }} ${{ needs.linting.result }}",
-                      "short": true
-                    },
-                    {
-                      "title": "Testing (Pytest)",
-                      "value": "${{ needs.testing.result == 'success' && ':white_check_mark:' || ':x:' }} ${{ needs.testing.result }}",
-                      "short": true
-                    }
-                  ]
-                }
-              ]
-            }
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+          author_name: GitHub Actions
+          mention: ${{ job.status == 'failure' && 'here' || '' }}
+          if_mention: failure,cancelled
+          job_name: ${{ job.job }}
+          channel: github-ci-notifications
+          icon_emoji: ':github:'
+          username: GitHub Actions
+          text: |
+            Workflow Summary:
+            Formatting: ${{ needs.formatting.result }}
+            Linting: ${{ needs.linting.result }}
+            Testing: ${{ needs.testing.result }}
+
+            Git Summary:
+            Commit: ${{ github.sha }}
+            Branch: ${{ github.ref }}
+            Author: ${{ github.actor }}
+            Event: ${{ github.event_name }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

@@ -1,0 +1,50 @@
+# File: .github/actions/setup-python/action.yml
+name: 'Setup Python Environment'
+description: 'Sets up Python, installs dependencies, and configures caching'
+inputs:
+  python-version:
+    description: 'Python version to use'
+    required: false
+    default: '3.10'
+  dependencies-file:
+    description: 'File specifying dependencies (requirements.txt or poetry.lock)'
+    required: false
+    default: 'requirements.txt requirements-dev.txt'
+  cache-dependency-path:
+    description: 'Used to specify the path to dependency files. Supports wildcards or a list of file names for caching multiple dependencies.'
+    required: false
+    default: '**/requirements.txt'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ inputs.python-version }}
+
+    - name: Load cached venv
+      uses: actions/cache@v3
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-python-${{ inputs.python-version }}-${{ hashFiles(inputs.cache-dependency-path) }}
+
+    - name: Install dependencies
+      shell: bash
+      run: |
+        python -m pip install --upgrade pip
+        for file in ${{ inputs.dependency-files }}; do
+          if [ -f "$file" ]; then
+            if [[ "$file" == *.txt ]]; then
+              pip install -r $file
+            elif [[ "$file" == *.lock ]]; then
+              pip install poetry
+              poetry install
+            else
+              echo "Unsupported dependency file format: $file"
+              exit 1
+            fi
+          else
+            echo "Warning: Dependency file not found: $file"
+          fi
+        done
