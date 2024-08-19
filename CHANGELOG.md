@@ -1,5 +1,13 @@
 # CHANGELOG
 
+## v1.1.2 (2024-08-19)
+
+### Fix
+
+* fix: publish2 ([`9b39c31`](https://github.com/cormac-rynne/github-actions/commit/9b39c3194001aac05e728edcdf5d5d675fdfcc96))
+
+* fix: publish2 ([`93ab707`](https://github.com/cormac-rynne/github-actions/commit/93ab707fd149081686c88d2675fb81b4577340e9))
+
 ## v1.1.1 (2024-08-18)
 
 ### Fix
