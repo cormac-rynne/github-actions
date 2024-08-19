@@ -29,6 +29,5 @@ def test():
 def nothing():
     """Doc string
     Docstring2
-    3
-    4"""
+    3"""
     return

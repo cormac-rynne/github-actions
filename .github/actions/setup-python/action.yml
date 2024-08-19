@@ -1,3 +1,4 @@
+# File: .github/actions/setup-python/action.yml
 name: 'Setup Python Environment'
 description: 'Sets up Python, installs dependencies, and configures caching'
 inputs:
@@ -24,14 +25,12 @@ runs:
 
     - name: Load cached venv
       uses: actions/cache@v3
-      id: cache
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-python-${{ inputs.python-version }}-${{ hashFiles(inputs.cache-dependency-path) }}
 
     - name: Install dependencies
       shell: bash
-      if: steps.cache.outputs.cache-hit != 'true'
       run: |
         python -m pip install --upgrade pip
         for file in ${{ inputs.dependency-files }}; do
@@ -49,4 +48,5 @@ runs:
             echo "Warning: Dependency file not found: $file"
           fi
         done
+
         pip install -e .[dev]
