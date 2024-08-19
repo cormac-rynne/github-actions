@@ -39,38 +39,6 @@ jobs:
         run: |
           pytest
 
-  slack-notification:
-    name: Slack Notification
-    needs: [formatting, linting, testing]
-    runs-on: ubuntu-latest
-    if: always()
-    steps:
-      - uses: actions/checkout@v3
-      - name: Slack Notification
-        uses: 8398a7/action-slack@v3
-        with:
-          status: ${{ job.status }}
-          fields: repo,message,commit,author,action,eventName,ref,workflow
-          author_name: GitHub Actions
-          mention: ${{ job.status == 'failure' && 'here' || '' }}
-          if_mention: failure,cancelled
-          job_name: ${{ job.job }}
-          channel: github-ci-notifications
-          icon_emoji: ':github:'
-          username: GitHub Actions
-          text: |
-            Workflow Summary:
-            *Formatting*: ${{ needs.formatting.result == 'success' && ':white_check_mark:' || ':x:' }} ${{ needs.formatting.result }}
-            *Linting*: ${{ needs.linting.result == 'success' && ':white_check_mark:' || ':x:' }} ${{ needs.linting.result }}
-            *Testing*: ${{ needs.testing.result == 'success' && ':white_check_mark:' || ':x:' }} ${{ needs.testing.result }}
-
-            ${{ job.status == 'success' && ':white_check_mark: All checks passed successfully!' || ':x: Some checks failed. Please review the workflow for more details.' }}
-          
-            <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Full Workflow Run>
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-
   bump-version:
     needs: [formatting, linting, testing]
     runs-on: ubuntu-latest
@@ -94,6 +62,9 @@ jobs:
     env:
       TWINE_USERNAME: ${{ secrets.PYPI_TEST_USERNAME }}
       TWINE_PASSWORD: ${{ secrets.PYPI_TEST_PASSWORD }}
+    outputs:
+      build_status: ${{ steps.build.outcome }}
+      publish_status: ${{ steps.publish.outcome }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -104,7 +75,45 @@ jobs:
           git fetch origin
           git checkout main
           git pull origin main
-      - name: build
+      - name: Build
+        id: build
         run: python -m build
       - name: Publish
+        id: publish
         run: twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+
+  slack-notification:
+    name: Slack Notification
+    needs: [formatting, linting, testing, bump-version, build-publish]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - uses: actions/checkout@v3
+      - name: Slack Notification
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          fields: repo,message,commit,author,action,eventName,ref,workflow
+          author_name: GitHub Actions
+          mention: ${{ job.status == 'failure' && 'here' || '' }}
+          if_mention: failure,cancelled
+          job_name: ${{ job.job }}
+          channel: github-ci-notifications
+          icon_emoji: ':github:'
+          username: GitHub Actions
+          text: |
+            Workflow Summary:
+            *Formatting*: ${{ needs.formatting.result == 'success' && ':white_check_mark:' || ':x:' }} ${{ needs.formatting.result }}
+            *Linting*: ${{ needs.linting.result == 'success' && ':white_check_mark:' || ':x:' }} ${{ needs.linting.result }}
+            *Testing*: ${{ needs.testing.result == 'success' && ':white_check_mark:' || ':x:' }} ${{ needs.testing.result }}
+            *Version Bump*: ${{ needs.bump-version.result == 'success' && ':white_check_mark:' || ':x:' }} ${{ needs.bump-version.result }}
+            *Build and Publish*:
+              - Build: ${{ needs.build-publish.outputs.build_status == 'success' && ':white_check_mark:' || ':x:' }} ${{ needs.build-publish.outputs.build_status }}
+              - Publish: ${{ needs.build-publish.outputs.publish_status == 'success' && ':white_check_mark:' || ':x:' }} ${{ needs.build-publish.outputs.publish_status }}
+
+            ${{ job.status == 'success' && ':white_check_mark: All steps completed successfully!' || ':x: Some steps failed. Please review the workflow for more details.' }}
+          
+            <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Full Workflow Run>
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
